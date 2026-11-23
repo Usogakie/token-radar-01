@@ -1,15 +1,92 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Token Radar: pre-token protocols ranked by implied value</title>
+<title>Token Launch Radar — what a pre-token protocol would be worth</title>
 <link rel="stylesheet" href="app.css">
 </head>
 <body>
-<a class="skip" href="#board">Skip to the board</a>
-<main id="board" tabindex="-1" aria-busy="true"></main>
-<script src="../data.js"></script>
+<header class="top">
+  <div>
+    <h1>Token Launch Radar</h1>
+    <p class="sub">758 protocols, one snapshot. Ranked by what a token would be worth if the
+    protocol&rsquo;s record stayed as it is &mdash; and what to do about each one before it launches.</p>
+  </div>
+  <div class="asof" id="asof">Snapshot 2026-11-14</div>
+</header>
+
+<section class="method" id="method">
+  <h2>How the value is scored</h2>
+  <p>Every implied value is this entry&rsquo;s own claim, computed from the snapshot&rsquo;s own
+  figures only &mdash; never from a list of names:</p>
+  <p class="formula">implied value = TVL &times; 0.35 &times; momentum &times; age &times; category</p>
+  <ul>
+    <li><b>TVL &times; 0.35</b> &mdash; at launch, a protocol token&rsquo;s fully diluted value
+    commonly lands at a fraction of TVL; 0.35 is the central case.</li>
+    <li><b>Momentum</b> = 1 + 2 &times; 7-day TVL change, clamped to &plusmn;30% (0.40&ndash;1.60).
+    Growing TVL is worth more; shrinking TVL is worth less.</li>
+    <li><b>Age</b> = 1 + 0.25 &times; years listed with no token, capped at 4 years (1.00&ndash;2.00).
+    Surviving longer without a token is pent-up launch value.</li>
+    <li><b>Category</b> = 1.15 for fee-earning venues (DEX, lending, derivatives),
+    1.10 for yield, RWA, curators and allocators, 1.05 for CDPs and basis, 1.00 otherwise.</li>
+  </ul>
+  <p>Protocols that <b>record no token</b> are the board&rsquo;s subject. Protocols whose token
+  already trades are ranked below them, with their real market cap shown. Exchanges, bridges and
+  wrapped or staked products cannot launch a token of their own, so they sit at the bottom with a
+  nominal marker (0.01% of TVL) instead of a launch valuation. A protocol is always described as
+  <i>recording</i> no token, never as <i>having</i> none.</p>
+</section>
+
+<section class="controls">
+  <input id="q" type="search" placeholder="Search name or slug&hellip;" aria-label="Search protocols">
+  <select id="cat" aria-label="Filter by category"><option value="">All categories</option></select>
+  <select id="status" aria-label="Filter by status">
+    <option value="">All protocols</option>
+    <option value="0">Pre-token &mdash; the launch board</option>
+    <option value="1">Not a launch candidate</option>
+    <option value="2">Token already trades</option>
+  </select>
+  <select id="sort" aria-label="Sort board">
+    <option value="value">Sort: implied value</option>
+    <option value="tvl">Sort: TVL</option>
+    <option value="growth">Sort: 7-day change</option>
+    <option value="age">Sort: age without token</option>
+  </select>
+</section>
+
+<p class="stats" id="stats"></p>
+
+<main>
+  <table id="board">
+    <thead><tr>
+      <th>#</th><th>Protocol</th><th>Category</th><th>Chains</th>
+      <th class="num">TVL</th><th class="num">7d</th><th class="num">Age</th>
+      <th>Status</th><th class="num">Implied value</th>
+    </tr></thead>
+    <tbody id="rows"></tbody>
+  </table>
+
+  <aside id="detail" class="detail" hidden>
+    <button id="closeDetail" type="button">&times; Close</button>
+    <h2 id="dName"></h2>
+    <p id="dMeta" class="dmeta"></p>
+    <div id="dBreak" class="break"></div>
+    <h3>Farm plan</h3>
+    <ol id="dSteps" class="steps"></ol>
+    <p id="dNote" class="dnote"></p>
+  </aside>
+</main>
+
+<footer>
+  <p>Data: DefiLlama public protocols snapshot, fetched 2026-11-14. The snapshot carries no
+  ranking, no implied value and no farm plan; deriving them is this entry&rsquo;s work.
+  Implied values are the entry&rsquo;s own claim, never make.fun&rsquo;s. Farm steps are general
+  information, not financial advice.</p>
+</footer>
+
+<script src="playbooks.js"></script>
+<script src="z-data.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
