@@ -7,7 +7,7 @@
 // Placeholders in every step, filled from the protocol's own facts:
 //   {name}  the protocol's name            {chain}   its first chain
 //   {chain2} its second chain (or its first chain again when it has one)
-//   {stake} a capital tier for this row, $250 / $500 / $1,000 by slug hash
+//   {stake} a capital tier for this row, $250 / $500 / $1,000 by TVL band
 //   {cat}   the protocol's category        {tvl}     its TVL, formatted
 //
 // Every step names a concrete action, what it costs and how long it takes.
