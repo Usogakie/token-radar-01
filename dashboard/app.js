@@ -91,20 +91,49 @@ function playbookFor(r) {
   return books[globalThis.RADAR_PLAYBOOKS.map[r[2]]] || books.generic;
 }
 
+// The capital tier follows the protocol's TVL band, not its slug: a bigger
+// protocol gets a bigger farm, so the tier means the same thing on every row.
+function stakeTier(tvl) {
+  if (tvl < 25000000) return '$250';
+  if (tvl <= 500000000) return '$500';
+  return '$1,000';
+}
+
+// One last step, generated from this row's own numbers — the plan's
+// data-driven check before any capital is committed (pre-token rows only).
+// Identical to the dataStep in main.ts, so the plan on screen is byte for
+// byte the plan in board.json.
+function dataStep(r, stake) {
+  var change = r[7] === null
+    ? 'the snapshot records no 7-day TVL change'
+    : 'TVL moved ' + (r[7] >= 0 ? '+' : '') + r[7].toFixed(1) + '% over the last 7 days';
+  var ageText = r[8] === null
+    ? 'no listing date in the snapshot'
+    : 'listed ' + r[8].toFixed(1) + ' years ago with no token';
+  var chains = r[5] > 1
+    ? 'across ' + r[5] + ' chains (' + r[3] + ' and ' + r[4] + ')'
+    : 'on ' + (r[3] || 'Ethereum') + ' only';
+  return 'Before you commit capital, re-check this row: ' + r[1] + ' holds ' + fmtUsd(r[6]) + ' ' + chains + ', ' +
+    change + ', ' + ageText + '. Size the farm at the ' + stake + ' tier for a protocol this size; ' +
+    'if the 7-day move has reversed or TVL has fallen more than 20% since this snapshot, ' +
+    'wait for the next radar instead of farming now.';
+}
+
 function farmSteps(r) {
-  var tiers = ['$250', '$500', '$1,000'];
-  var stake = tiers[slugHash(r[0]) % tiers.length];
+  var stake = stakeTier(r[6]);
   var chain = r[3];
   var chain2 = r[4] || r[3];
   var subs = {
     '{name}': r[1], '{chain}': chain, '{chain2}': chain2,
     '{stake}': stake, '{cat}': r[2], '{tvl}': fmtUsd(r[6]),
   };
-  return playbookFor(r).steps.map(function (t) {
+  var steps = playbookFor(r).steps.map(function (t) {
     var s = t;
     for (var k in subs) s = s.split(k).join(subs[k]);
     return s;
   });
+  if (r[10] === 0) steps.push(dataStep(r, stake));
+  return steps;
 }
 
 function statusLabel(r) {
