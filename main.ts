@@ -55,9 +55,9 @@ const AGE_K = 0.25; // each year listed without a token adds 25%
 const AGE_CAP = 4; // age stops adding after four years
 const VALUE_CAP = 50_000_000_000; // sanity cap, far above any row here
 const NOMINAL_RATE = 0.0001; // section 2 marker: 0.01% of TVL, not a value
-const PRE_TOKEN_ROWS = 160; // section 1 size (covers all 40 watchlist slugs)
-const TAIL_ROWS = 20; // section 2 size: the biggest non-launch products
-const LAUNCHED_ROWS = 20; // section 3 size: the biggest tokens already trading
+const PRE_TOKEN_ROWS = 200; // section 1 size (covers all 40 watchlist slugs)
+const TAIL_ROWS = 10; // section 2 size: the biggest non-launch products
+const LAUNCHED_ROWS = 10; // section 3 size: the biggest tokens already trading
 
 const CATEGORY_FACTOR: Record<string, number> = {
   Dexs: 1.15,
@@ -91,7 +91,13 @@ const EXCHANGE_NAMES = ['binance', 'coinbase', 'bybit', 'kraken', 'bitget', 'okx
 const VERSION_MARKER = /\s(v\d+(\.\d+)?|v\d+(\.\d+)?|\d+\.\d+)$/;
 const WRAPPED_WORD = /\b(wrapped|staked|staking)\b/i;
 
-const STAKE_TIERS = ['$250', '$500', '$1,000'];
+// The capital tier follows the protocol's TVL band, not its slug: a bigger
+// protocol gets a bigger farm, so the tier means the same thing on every row.
+function stakeTier(tvlUsd: number): string {
+  if (tvlUsd < 25_000_000) return '$250';
+  if (tvlUsd <= 500_000_000) return '$500';
+  return '$1,000';
+}
 
 // ------------------------------------------------------------------ types
 
@@ -200,9 +206,32 @@ function playbookFor(p: Protocol, status: Status, books: Playbooks): { label: st
   return (key !== undefined ? books.books[key] : undefined) ?? books.books.generic;
 }
 
-function farmSteps(p: Protocol, status: Status, books: Playbooks): string[] {
+// One last step, generated from this row's own numbers — the plan's
+// data-driven check before any capital is committed (pre-token rows only).
+// The branches cover the rows the snapshot leaves blank: a null 7-day change
+// and a null listing date each get their own honest wording.
+function dataStep(p: Protocol, age: number | null, stake: string): string {
+  const change =
+    p.change_7d === null
+      ? 'the snapshot records no 7-day TVL change'
+      : `TVL moved ${(p.change_7d >= 0 ? '+' : '') + p.change_7d.toFixed(1)}% over the last 7 days`;
+  const ageText =
+    age === null ? 'no listing date in the snapshot' : `listed ${age.toFixed(1)} years ago with no token`;
+  const chains =
+    p.chains.length > 1
+      ? `across ${p.chains.length} chains (${p.chains[0]} and ${p.chains[1]})`
+      : `on ${p.chains[0] ?? 'Ethereum'} only`;
+  return (
+    `Before you commit capital, re-check this row: ${p.name} holds ${fmtUsd(p.tvl_usd)} ${chains}, ` +
+    `${change}, ${ageText}. Size the farm at the ${stake} tier for a protocol this size; ` +
+    `if the 7-day move has reversed or TVL has fallen more than 20% since this snapshot, ` +
+    `wait for the next radar instead of farming now.`
+  );
+}
+
+function farmSteps(p: Protocol, status: Status, books: Playbooks, age: number | null): string[] {
   const book = playbookFor(p, status, books);
-  const stake = STAKE_TIERS[slugHash(p.slug) % STAKE_TIERS.length];
+  const stake = stakeTier(p.tvl_usd);
   const chain = p.chains[0] ?? 'Ethereum';
   const chain2 = p.chains[1] ?? chain;
   const subs: Record<string, string> = {
@@ -213,11 +242,13 @@ function farmSteps(p: Protocol, status: Status, books: Playbooks): string[] {
     '{cat}': p.category ?? 'DeFi',
     '{tvl}': fmtUsd(p.tvl_usd),
   };
-  return book.steps.map((t) => {
+  const steps = book.steps.map((t) => {
     let s = t;
     for (const k of Object.keys(subs)) s = s.split(k).join(subs[k]!);
     return s;
   });
+  if (status === 0) steps.push(dataStep(p, age, stake));
+  return steps;
 }
 
 // ------------------------------------------------------------------ main
@@ -328,7 +359,7 @@ function main(): void {
     name: x.p.name,
     rank: i + 1,
     implied_value_usd: x.value,
-    farm_steps: farmSteps(x.p, x.status, books),
+    farm_steps: farmSteps(x.p, x.status, books, x.age),
     category: x.p.category ?? 'DeFi',
     chains: x.p.chains,
     tvl_usd: x.p.tvl_usd,
