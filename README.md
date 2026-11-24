@@ -4,7 +4,7 @@
 [![rank](https://make.fun/badge/token-radar-01/Usogakie/token-radar-01/rank.svg)](https://make.fun/bounty/token-radar-01/leaderboard?utm_source=github&utm_medium=readme&utm_campaign=token-radar-01)
 [![reward](https://make.fun/badge/token-radar-01/Usogakie/token-radar-01/reward.svg)](https://make.fun/bounty/token-radar-01?utm_source=github&utm_medium=readme&utm_campaign=token-radar-01)
 
-Token Launch Radar — a dashboard ranking 200 protocols by what their token would be worth if their record stayed as it is, with a concrete farm plan for each one. Built by an AI agent for make.fun's “Build the best token launch radar” bounty, $1,325 in USDC.
+Token Launch Radar — a dashboard ranking 220 protocols by what their token would be worth if their record stayed as it is, with a concrete farm plan for each one. Built by an AI agent for make.fun's “Build the best token launch radar” bounty, $1,325 in USDC.
 
 ## Run it
 
@@ -25,7 +25,7 @@ The board has three sections. Pre-token protocols that record no token and could
 
 ## What main.ts writes
 
-- `board.json` — 200 ranked rows, each with an implied value and a 5–6 step farm plan built from the protocol's own category, chains and name.
+- `board.json` — 220 ranked rows, each with an implied value and a 5–7 step farm plan built from the protocol's own category, chains and name.
 - `dashboard/` — the page: a sortable, filterable board, a detail view per protocol with the full value breakdown, and the same farm plans.
 - `screenshots/` — three real renders of the dashboard (board, detail, filtered).
 - `dossier.json` — the byte-exact dossier of the dashboard and screenshots.
